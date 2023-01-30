@@ -8,16 +8,35 @@ namespace OutwardQuickbarMod {
 
     /// <summary>
     /// Main class of quickbar plugin.
+    /// See base class docs <see href="https://docs.bepinex.dev/api/BepInEx.BaseUnityPlugin.html">here</see>.
     /// </summary>
+    /// <remarks>
+    /// Does not require to be manually instantiated.
+    /// </remarks>
     [BepInPlugin(GUID, NAME, VERSION)]
     public class QuickbarPlugin : BaseUnityPlugin {
 
+        /// <summary>
+        /// Unique Id of the quickbar plugin. Should not change between versions.
+        /// See full docs <see href="https://docs.bepinex.dev/api/BepInEx.BepInPlugin.html">here</see>.
+        /// </summary>
         public const string GUID = "quickbar-mod";
+
+        /// <summary>
+        /// User visible name of the quickbar plugin.
+        /// See full docs <see href="https://docs.bepinex.dev/api/BepInEx.BepInPlugin.html">here</see>.
+        /// </summary>
         public const string NAME = "Outward Quickbar Mod";
+
+        /// <summary>
+        /// Version of the quickbar plugin.
+        /// See full docs <see href="https://docs.bepinex.dev/api/BepInEx.BepInPlugin.html">here</see>.
+        /// </summary>
         public const string VERSION = "1.0.0";
 
         /// <summary>
-        /// Overriden BepInEx logger to allow use outside of this class.
+        /// Overriden base BepInEx logger to allow use outside of this class.
+        /// See full logger docs <see href="https://docs.bepinex.dev/api/BepInEx.Logging.ManualLogSource.html">here</see>.
         /// </summary>
         public static new ManualLogSource Logger;
 
@@ -28,16 +47,18 @@ namespace OutwardQuickbarMod {
 
         /// <summary>
         /// BepInEx config entry for total quickbar count in-game.
+        /// See full docs <see href="https://docs.bepinex.dev/api/BepInEx.Configuration.ConfigEntry-1.html">here</see>.
         /// </summary>
         public static ConfigEntry<int> TotalQuickbarCount;
 
         /// <summary>
-        /// Saved dictionary of quickbar saves by character UID.
+        /// Dictionary of quickbar saves by character UID.
         /// </summary>
         private static readonly Dictionary<UID, QuickbarSaveExtension> m_savedQuickbars = new();
 
         /// <summary>
-        /// Gets keybinding string representation based on index.
+        /// Gets keybinding string representation based on index,
+        /// which is visible to the user through game settings.
         /// </summary>
         /// <param name="quickbarIndex">Quickbar index.</param>
         /// <returns>Keybinding name.</returns>
@@ -59,13 +80,14 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Implementation of Unity script Awake function.
-        /// Setups all required configs and keybindings.
+        /// Implementation of Unity script Awake function, which is called once after starting the game
+        /// and is functionally same as constructor.
+        /// Setups all required configs and keybindings for quickbar plugin.
         /// </summary>
         internal void Awake() {
             Logger = base.Logger;
 
-            Logger.LogMessage($"{NAME} v{VERSION} initialized.");
+            Logger.LogInfo($"{NAME} v{VERSION} initialized.");
 
             TotalQuickbarCount = Config.Bind("Settings", "Total quickbar count", 4,
                 new ConfigDescription("Total amount of quickbars to choose from", new AcceptableValueRange<int>(1, MAX_QUICKBAR_COUNT)));
@@ -75,8 +97,8 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Implementation of Unity script Update function.
-        /// Checks for key presses to switch quickbars.
+        /// Implementation of Unity script Update function, which happens every frame.
+        /// Checks for key presses to switches quickbars if pressed.
         /// </summary>
         internal void Update() {
             if (MenuManager.Instance.IsInMainMenuScene || NetworkLevelLoader.Instance.IsGameplayPaused)
@@ -94,11 +116,12 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Switches characted to new quickbar.
+        /// Switches characters quickbar to a different one from existing list.
         /// </summary>
         /// <param name="character">Characted to switch quickbars for.</param>
         /// <param name="quickbarIndex">Index of the new quickbar.</param>
         private static void SwitchQuickbar(Character character, int quickbarIndex) {
+            // First need to save current quickbar data in case it was changed in-game, so it wouldn't get lost.
             var save = GetQuickbarSave(character.UID);
             save.SetQuickbarFromCharacter(character);
 

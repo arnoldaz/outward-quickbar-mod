@@ -7,10 +7,11 @@ using System.Xml.Serialization;
 namespace OutwardQuickbarMod {
 
     /// <summary>
-    /// Serializable instance with quickbar mod saveable information.
+    /// Serializable instance with quickbar mod saveable data.
+    /// See SideLoader save extension docs <see href="https://sinai-dev.github.io/OSLDocs/#/API/CSharpAPI?id=playersaveextension">here</see>.
     /// </summary>
     /// <remarks>
-    /// Must be public to be serialized.
+    /// Must be public to allow serialization.
     /// </remarks>
     [Serializable]
     public class QuickbarSaveExtension : PlayerSaveExtension {
@@ -24,6 +25,7 @@ namespace OutwardQuickbarMod {
         /// <summary>
         /// Main quickbar data.
         /// Each list entry contains single quickbar data with each quickslot separated with <see cref="m_quickbarDataSeparator"/>.
+        /// Need to make sure list length is at <see cref="QuickbarPlugin.TotalQuickbarCount.Value"/> before accessing elements.
         /// </summary>
         [XmlArray]
         public List<string> QuickbarData = new();
@@ -46,7 +48,8 @@ namespace OutwardQuickbarMod {
         /// <summary>
         /// Adds empty strings to <see cref="QuickbarData"/> until it is filled to total quickbar count
         /// to not get out of range exception if save file is empty.
-        /// This can't be done on constructor, since SideLoader does not overrides list property but adds to it.
+        /// Expected to be called before accessing any element from the <see cref="QuickbarData"/>.
+        /// This can't be done on constructor, since SideLoader does not override list property but adds to it.
         /// </summary>
         private void FixQuickbarDataSize() {
             var totalQuickbarCount = QuickbarPlugin.TotalQuickbarCount.Value;
@@ -55,11 +58,13 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Serializes instance from the character.
-        /// Base class will save it to XML.
+        /// Overriden abstract method, which gets called once game is closed and saves current instance values to XML.
+        /// Loads current data from the latest save and sets current quickbar from the character before to prepare for closing.
         /// </summary>
         /// <inheritdoc path="/param"/>
         public override void Save(Character character, bool isWorldHost) {
+            QuickbarPlugin.Logger.LogDebug("Saving quickbar mod data.");
+
             var save = QuickbarPlugin.GetQuickbarSave(character.UID);
             OverrideSerializableProperties(save);
 
@@ -67,7 +72,7 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Sets current class <see cref="QuickbarData"/> at <see cref="ActiveQuickbarIndex"/> using the data from the character.
+        /// Sets <see cref="QuickbarData"/> at <see cref="ActiveQuickbarIndex"/> using the data from the character.
         /// </summary>
         /// <param name="character"></param>
         public void SetQuickbarFromCharacter(Character character) {
@@ -84,11 +89,13 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Base class Loads XML data to this instance.
-        /// Apply it to the character.
+        /// Overriden abstract method, which gets called once game is opened and loads XML data to the instance.
+        /// Saves current instance data to the dictionary and sets current character quickbar based on the saved values.
         /// </summary>
         /// <inheritdoc path="/param"/>
         public override void ApplyLoadedSave(Character character, bool isWorldHost) {
+            QuickbarPlugin.Logger.LogDebug("Loading quickbar mod data.");
+
             var save = QuickbarPlugin.GetQuickbarSave(character.UID);
             save.OverrideSerializableProperties(this);
 
@@ -96,7 +103,7 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Sets character quickbar using current <see cref="ActiveQuickbarIndex"/> from <see cref="QuickbarData"/>.
+        /// Sets current character quickbar using <see cref="ActiveQuickbarIndex"/> from <see cref="QuickbarData"/>.
         /// </summary>
         /// <param name="character">Character to set quickbar data to.</param>
         public void SetCharacterQuickbar(Character character) {
@@ -121,7 +128,7 @@ namespace OutwardQuickbarMod {
         }
 
         /// <summary>
-        /// Sets new active quickbar to the character.
+        /// Sets new active quickbar to the character from the existing list.
         /// </summary>
         /// <param name="character">Character to set quickbar data to.</param>
         /// <param name="quickbarIndex">Index of the new active quickbar from the <see cref="QuickbarData"/>.</param>
