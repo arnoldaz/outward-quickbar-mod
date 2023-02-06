@@ -20,13 +20,13 @@ namespace OutwardQuickbarMod {
         /// Unique Id of the quickbar plugin. Should not change between versions.
         /// See full docs <see href="https://docs.bepinex.dev/api/BepInEx.BepInPlugin.html">here</see>.
         /// </summary>
-        public const string GUID = "quickbar-mod";
+        public const string GUID = "com.arnoldaz.multiplequickbars";
 
         /// <summary>
         /// User visible name of the quickbar plugin.
         /// See full docs <see href="https://docs.bepinex.dev/api/BepInEx.BepInPlugin.html">here</see>.
         /// </summary>
-        public const string NAME = "Outward Quickbar Mod";
+        public const string NAME = "Multiple Quickbars";
 
         /// <summary>
         /// Version of the quickbar plugin.
